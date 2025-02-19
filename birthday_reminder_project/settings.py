@@ -89,6 +89,15 @@ REST_FRAMEWORK = {
     )
 }
 
+EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
+EMAIL_HOST = 'smtp.mailgun.org'
+EMAIL_PORT = 587
+EMAIL_HOST_USER = 'postmaster@sandbox0f95a144867f4f669201b21957d8f70d.mailgun.org'
+EMAIL_HOST_PASSWORD = '8be8375707900d0b9af73f6c9892910f-1654a412-b66acaba'
+EMAIL_USE_TLS = True
+DEFAULT_FROM_EMAIL = 'noreply@example.com'
+
+
 
 # Password validation
 # https://docs.djangoproject.com/en/5.1/ref/settings/#auth-password-validators
