@@ -12,7 +12,7 @@ staff_router.register(r'staff', StaffViewSet, basename='staff')
 
 
 urlpatterns = [
-    path('api/admin/login/', AdminLoginView.as_view(), name='admin-login'),
+    path('api/auth/login/', AdminLoginView.as_view(), name='admin-login'),
     path('api/admin/', include(staff_router.urls)), 
     path('api/', include(router.urls)),  
 ]
