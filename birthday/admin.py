@@ -1,17 +1,27 @@
 from django.contrib import admin
-
-# Register your models here.
-from .models import Birthday, User
+from .models import Birthday, Staff, User
 
 @admin.register(Birthday)
 class BirthdayAdmin(admin.ModelAdmin):
-    list_display = ('birth_date', 'user', 'created_at', 'updated_at')
-    list_filter = ('birth_date',)
+    list_display = ('date_of_birth', 'staff', 'created_at', 'updated_at')
+    list_filter = ('date_of_birth',)
+
+@admin.register(Staff)
+class UserAdmin(admin.ModelAdmin):
+    list_display = [field.name for field in Staff._meta.fields]
+    fields = [field.name for field in Staff._meta.fields if field.name not in ["id", "created_at", "updated_at"]]
+
 
 @admin.register(User)
 class UserAdmin(admin.ModelAdmin):
-    # Dynamically gather all field names from the User model
-    list_display = [field.name for field in User._meta.fields if field.name != "id"]
+    # Determines which fields will be shown in the list view of the Staff records in the admin interface.
+    list_display = [field.name for field in User._meta.fields]
+    # Specifies which fields should appear on the form when you add or edit a Staff record in the admin.
+    fields = [field.name for field in User._meta.fields if field.name not in ["id", "created_at", "updated_at"]]
 
-    # Optionally, if you also want to show all fields when editing a user in admin:
-    fields = [field.name for field in User._meta.fields if field.name != "id"]
+    def save_model(self, request, obj, form, change):
+        """Hashes the password before saving the user."""
+        if form.cleaned_data.get("password"):  
+            obj.set_password(form.cleaned_data["password"]) 
+        super().save_model(request, obj, form, change)  
+

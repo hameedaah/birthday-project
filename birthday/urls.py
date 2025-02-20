@@ -1,12 +1,19 @@
 from django.contrib import admin
 from django.urls import include, path
-from .views import BirthdayViewSet, UserViewSet
+from .views import BirthdayViewSet, StaffViewSet, AdminLoginView
 from rest_framework.routers import DefaultRouter
 
+
 router = DefaultRouter()
-router.register(r'birthdays', BirthdayViewSet, basename='birthday')
-router.register(r'users', UserViewSet, basename='users')
+router.register(r'birthday', BirthdayViewSet, basename='birthday')
+staff_router = DefaultRouter()
+staff_router.register(r'staff', StaffViewSet, basename='staff')
+
+
 
 urlpatterns = [
-    path('', include(router.urls)),
+    path('api/admin/login/', AdminLoginView.as_view(), name='admin-login'),
+    path('api/admin/', include(staff_router.urls)), 
+    path('api/', include(router.urls)),  
 ]
+

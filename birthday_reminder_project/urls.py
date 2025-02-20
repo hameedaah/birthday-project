@@ -29,9 +29,9 @@ schema_view = get_schema_view(
    openapi.Info(
       title="Birthday Reminder API",
       default_version='v1',
-      description="Test description",
+      description="A birthday reminder API for creating staff, birthdays and sending reminders.",
       terms_of_service="https://www.google.com/policies/terms/",
-      contact=openapi.Contact(email="contact@snippets.local"),
+      contact=openapi.Contact(email="contact@admin.admin"),
       license=openapi.License(name="BSD License"),
    ),
    public=True,
@@ -45,8 +45,9 @@ urlpatterns = [
     path('redoc/', schema_view.with_ui('redoc', cache_timeout=0), name='schema-redoc'),
 
     #authentication
-    path('api/token/', TokenObtainPairView.as_view(), name='token_obtain_pair'), #get access and refesh tokens
-    path('api/token/refresh/', TokenRefreshView.as_view(), name='token_refresh'), #refresh tokens
+    path('api/token/', TokenObtainPairView.as_view(), name='token_obtain_pair'), 
+    path('api/token/refresh/', TokenRefreshView.as_view(), name='token_refresh'), 
+
     #myurls
     path('admin/', admin.site.urls),
     path("", include("birthday.urls")),

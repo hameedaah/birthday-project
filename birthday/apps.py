@@ -2,7 +2,7 @@ from django.apps import AppConfig
 from apscheduler.schedulers.background import BackgroundScheduler
 from apscheduler.triggers.cron import CronTrigger
 from apscheduler.triggers.interval import IntervalTrigger
-from .tasks import send_birthday_emails
+# from .tasks import send_birthday_emails
 
 
 class BirthdayConfig(AppConfig):

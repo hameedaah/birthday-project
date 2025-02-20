@@ -1,29 +1,31 @@
-# serializers.py
 from rest_framework import serializers
-from .models import Birthday
-
-# serializers.py
+from .models import Birthday, Staff
+from datetime import datetime
 from django.contrib.auth import get_user_model
-from rest_framework import serializers
 
 User = get_user_model()
+
+class StaffSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Staff
+        fields = '__all__'
+        read_only_fields = ['id','created_at', 'updated_at']
+
+class BirthdaySerializer(serializers.ModelSerializer):
+    staff = StaffSerializer(read_only=True)
+    def validate_date_of_birth(self, value):
+        # Ensure the date is in the past
+        if value > datetime.today().date():
+            raise serializers.ValidationError("Date of birth cannot be in the future.")
+        return value
+
+    class Meta:
+        model = Birthday
+        fields = '__all__'
+        read_only_fields = ['id', 'staff', 'created_at', 'updated_at']
 
 class UserSerializer(serializers.ModelSerializer):
     class Meta:
         model = User
-        fields = [
-            'id',
-            'first_name',
-            'last_name',
-            'email',
-        ]
-        # Typically, the 'id' might be UUID if you're using a custom user with UUID primary key
-        # 'read_only_fields' can be used to disallow modification of certain fields
+        fields = '__all__'
         read_only_fields = ['id']
-
-class BirthdaySerializer(serializers.ModelSerializer):
-    user = UserSerializer(read_only=True)
-    class Meta:
-        model = Birthday
-        fields = ['id','user', 'created_at', 'birth_date', 'updated_at']
-        read_only_fields = ['id', 'user', 'created_at', 'updated_at']
