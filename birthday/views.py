@@ -4,11 +4,14 @@ from .serializers import BirthdaySerializer, UserSerializer
 from rest_framework_simplejwt.authentication import JWTAuthentication
 from drf_yasg.utils import swagger_auto_schema
 
+
+
 class BirthdayViewSet(viewsets.ModelViewSet):
     queryset = Birthday.objects.all()
     serializer_class = BirthdaySerializer
     authentication_classes = [JWTAuthentication]
-    # permission_classes = [permissions.IsAuthenticated]
+    permission_classes = [permissions.IsAuthenticated, permissions.IsAdminUser]
+
 
     @swagger_auto_schema(request_body=BirthdaySerializer)
     def create(self, request, *args, **kwargs):
@@ -20,9 +23,11 @@ class BirthdayViewSet(viewsets.ModelViewSet):
 class UserViewSet(viewsets.ModelViewSet):
     queryset = User.objects.all()
     serializer_class = UserSerializer
+    # Define authentication method
     authentication_classes = [JWTAuthentication]
+    # Only authenticated users can access
+    permission_classes = [permissions.IsAuthenticated, permissions.IsAdminUser]
 
-    permission_classes = [permissions.IsAuthenticated]  # or a custom permission
 
     @swagger_auto_schema(request_body=UserSerializer)
     def create(self, request, *args, **kwargs):

@@ -14,10 +14,6 @@ class Department(models.TextChoices):
     Computer_Science ="Computer_Science"
 
 class User(AbstractUser):
-    """
-    Custom user model that uses a UUID for the primary key
-    instead of the default auto-incrementing integer.
-    """
     id = models.UUIDField(
         primary_key=True,
         default=uuid.uuid4,
@@ -38,9 +34,7 @@ class User(AbstractUser):
 
 class Birthday(models.Model):
     """
-    Stores a single 'Birthday' entry, related to a Django User (the admin who
-    created the entry, or the user who 'owns' the birthday entry—this depends
-    on your design).
+    Stores a single 'Birthday' entry, related to a Django user who 'owns' the birthday
     """
     id = models.UUIDField(
         primary_key=True,
