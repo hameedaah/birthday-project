@@ -71,11 +71,10 @@ class StaffViewSet(viewsets.ModelViewSet):
 
     def get_permissions(self):
         """Allow unauthenticated access for GET, require authentication for others"""
-        if self.action in ['list', 'retrieve']:  # Public access for GET requests
+        if self.action in ['list', 'retrieve']:  
             return [permissions.AllowAny()]
         return super().get_permissions()
     
-
     def get_queryset(self):
         today = date.today()
         return Staff.objects.annotate(
@@ -93,9 +92,7 @@ class StaffViewSet(viewsets.ModelViewSet):
                 default=Value(0),
                 output_field=IntegerField()
             )
-        ).order_by('birthday_passed', 'birth_month', 'birth_day')  # ✅ Upcoming birthdays first
-
-
+        ).order_by('birthday_passed', 'birth_month', 'birth_day')  
 
     @swagger_auto_schema(
         operation_description="Return a list of all staff.",
@@ -104,13 +101,29 @@ class StaffViewSet(viewsets.ModelViewSet):
     def list(self, request, *args, **kwargs):
         return super().list(request, *args, **kwargs)
 
+    # @swagger_auto_schema(
+    #     operation_description="Accept staff details and create a new staff.",
+    #     request_body=StaffSerializer,
+    #     responses={201: StaffSerializer}
+    # )
+    # def create(self, request, *args, **kwargs):
+    #     return super().create(request, *args, **kwargs)
+    
     @swagger_auto_schema(
-        operation_description="Accept staff details and create a new staff.",
-        request_body=StaffSerializer,
-        responses={201: StaffSerializer}
+        operation_description="Accept staff details and create new staff.",
+        request_body=StaffSerializer(many=True),  
+        responses={201: StaffSerializer(many=True)}
     )
     def create(self, request, *args, **kwargs):
-        return super().create(request, *args, **kwargs)
+        """Handles both single and bulk staff creation"""
+        data = request.data
+        is_bulk = isinstance(data, list) 
+
+        serializer = self.get_serializer(data=data, many=is_bulk)
+        serializer.is_valid(raise_exception=True)
+        self.perform_create(serializer)
+
+        return Response(serializer.data, status=status.HTTP_201_CREATED)
 
     @swagger_auto_schema(
         operation_description="Fetch a single staff based on their id.",

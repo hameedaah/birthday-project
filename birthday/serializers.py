@@ -6,14 +6,14 @@ from django.contrib.auth import get_user_model
 User = get_user_model()
 
 class StaffSerializer(serializers.ModelSerializer):
-    first_name = serializers.SerializerMethodField()
-    last_name = serializers.SerializerMethodField()
+    first_name = serializers.CharField()
+    last_name = serializers.CharField()
 
-    def get_first_name(self, obj):
-        return obj.first_name.capitalize() 
+    def validate_first_name(self, value):
+        return value.capitalize()
 
-    def get_last_name(self, obj):
-        return obj.last_name.capitalize() 
+    def validate_last_name(self, value):
+        return value.capitalize()
     
 
       

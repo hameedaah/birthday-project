@@ -56,7 +56,7 @@ class Staff(models.Model):
         default=StaffType.academic
     )
     date_of_birth = models.DateField()
-    profile_image_url = models.URLField(blank=True)
+    profile_image_url = models.TextField(blank=True) 
     notification_type = models.CharField(
         max_length=100,
         choices=NotificationType.choices,
