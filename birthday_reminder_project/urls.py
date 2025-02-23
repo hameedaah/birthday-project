@@ -51,5 +51,4 @@ urlpatterns = [
     #myurls
     path('admin/', admin.site.urls),
     path("", include("birthday.urls")),
-
 ]

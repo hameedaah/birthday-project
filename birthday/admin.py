@@ -1,10 +1,6 @@
 from django.contrib import admin
-from .models import Birthday, Staff, User
+from .models import Staff, User
 
-@admin.register(Birthday)
-class BirthdayAdmin(admin.ModelAdmin):
-    list_display = ('date_of_birth', 'staff', 'created_at', 'updated_at')
-    list_filter = ('date_of_birth',)
 
 @admin.register(Staff)
 class UserAdmin(admin.ModelAdmin):

@@ -2,25 +2,30 @@ from django.db import models
 from django.contrib.auth.models import AbstractUser
 from django.core.validators import RegexValidator
 from django.db.models.functions import Lower
+from django.core.exceptions import ValidationError
+from datetime import date
 import uuid
 
 
-
 class StaffType(models.TextChoices):
-    Academic = "Academic"
-    Non_Academic = "Non_Academic"
+    academic = "academic"
+    non_academic = "non_academic"
+
+class NotificationType(models.TextChoices):
+    email = "email"
+    phone_number = "phone_number"
 
 class Department(models.TextChoices):
-    Botany = "Botany"
-    Computer_Science ="Computer_Science"
-    Chemistry = "Chemistry"
-    Cell_Biology_And_Genetics = "Cell_Biology_And_Genetics"
-    Marine_Sciences = "Marine_Sciences"
-    Mathematics = "Mathematics"
-    Microbiology = "Microbiology"
-    Physics = "Physics"
-    Statistics = "Statistics"
-    Zoology = "Zoology"
+    botany = "botany"
+    computer_science ="computer_science"
+    chemistry = "chemistry"
+    cell_biology_and_genetics = "cell_biology_and_genetics"
+    marine_sciences = "marine_sciences"
+    mathematics = "mathematics"
+    microbiology = "microbiology"
+    physics = "physics"
+    statistics = "statistics"
+    zoology = "zoology"
 
 class User(AbstractUser):
     id = models.UUIDField(
@@ -28,29 +33,14 @@ class User(AbstractUser):
         default=uuid.uuid4,
         editable=False
     )
-
     def __str__(self):
         return self.username
     
 class Staff(models.Model):
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
-    staff_number = models.CharField(max_length=9, unique=True)
     first_name = models.CharField(max_length=100)
     last_name = models.CharField(max_length=100)
     email = models.EmailField(unique=True)
-    class Meta:
-        constraints = [
-            models.UniqueConstraint(
-                Lower('email'),
-                name='unique_lower_email'
-            )
-        ]
-
-    def save(self, *args, **kwargs):
-        if self.email:
-            self.email = self.email.lower() 
-        super().save(*args, **kwargs)
-
     phone_number = models.CharField(
         max_length=11,
         validators=[RegexValidator(r'^\d{11}$', message="Phone number must be exactly 11 digits.")], unique=True
@@ -58,37 +48,41 @@ class Staff(models.Model):
     department = models.CharField(
         max_length=100,
         choices=Department.choices,
-        default=Department.Computer_Science
+        default=Department.computer_science
     )
     staff_type = models.CharField(
         max_length=100,
         choices=StaffType.choices,
-        default=StaffType.Academic
+        default=StaffType.academic
     )
+    date_of_birth = models.DateField()
     profile_image_url = models.URLField(blank=True)
+    notification_type = models.CharField(
+        max_length=100,
+        choices=NotificationType.choices,
+        default=NotificationType.email
+    )
+    is_enabled = models.BooleanField(default=True) 
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        constraints = [
+            models.UniqueConstraint(
+                Lower('email'),
+                name='unique_lower_email'
+            )
+        ]
+    
+    def clean(self):
+        if self.date_of_birth and self.date_of_birth > date.today():
+            raise ValidationError({"date_of_birth": "Date of birth cannot be in the future."})
+
+    def save(self, *args, **kwargs):
+        self.full_clean()  
+        if self.email:
+            self.email = self.email.lower() 
+        super().save(*args, **kwargs) 
 
     def __str__(self):
         return f"{self.first_name} {self.last_name}"
-
-class Birthday(models.Model):
-    """
-    Stores a single 'Birthday' entry, related to a Django user who 'owns' the birthday
-    """
-    id = models.UUIDField(
-        primary_key=True,
-        default=uuid.uuid4,
-        editable=False
-        )
-    staff = models.OneToOneField(
-    Staff,
-    on_delete=models.CASCADE,
-    related_name='birthday',
-)
-    date_of_birth = models.DateField()
-    created_at = models.DateTimeField(auto_now_add=True)
-    updated_at = models.DateTimeField(auto_now=True)
-
-    def __str__(self):
-        return f"{self.date_of_birth}"

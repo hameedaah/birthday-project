@@ -1,28 +1,27 @@
 from rest_framework import serializers
-from .models import Birthday, Staff
+from .models import Staff
 from datetime import datetime
 from django.contrib.auth import get_user_model
 
 User = get_user_model()
 
 class StaffSerializer(serializers.ModelSerializer):
+    first_name = serializers.SerializerMethodField()
+    last_name = serializers.SerializerMethodField()
+
+    def get_first_name(self, obj):
+        return obj.first_name.capitalize() 
+
+    def get_last_name(self, obj):
+        return obj.last_name.capitalize() 
+    
+
+      
     class Meta:
         model = Staff
         fields = '__all__'
         read_only_fields = ['id','created_at', 'updated_at']
 
-class BirthdaySerializer(serializers.ModelSerializer):
-    staff = StaffSerializer(read_only=True)
-    def validate_date_of_birth(self, value):
-        # Ensure the date is in the past
-        if value > datetime.today().date():
-            raise serializers.ValidationError("Date of birth cannot be in the future.")
-        return value
-
-    class Meta:
-        model = Birthday
-        fields = '__all__'
-        read_only_fields = ['id', 'staff', 'created_at', 'updated_at']
 
 class UserSerializer(serializers.ModelSerializer):
     class Meta:
