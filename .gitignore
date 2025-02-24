@@ -1,2 +1,4 @@
 *.pyc
 myVenv
+.env
+db.sqlite3
