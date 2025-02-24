@@ -1,4 +1,4 @@
-from rest_framework import viewsets, permissions, status
+from rest_framework import viewsets, permissions, status, filters
 from .models import Staff, User
 from .serializers import  StaffSerializer, UserSerializer
 from rest_framework_simplejwt.authentication import JWTAuthentication
@@ -9,7 +9,15 @@ from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework_simplejwt.tokens import RefreshToken
 from django.db.models import IntegerField, Case, When, Value, F
+from django_filters.rest_framework import DjangoFilterBackend
+from rest_framework.exceptions import ValidationError
 from datetime import date
+
+DEPARTMENT_CHOICES = [
+    "botany", "computer_science", "chemistry", "cell_biology_and_genetics",
+    "marine_sciences", "mathematics", "microbiology", "physics",
+    "statistics", "zoology"
+]
 
 
 class AdminLoginView(APIView):
@@ -64,6 +72,9 @@ class UserViewSet(viewsets.ModelViewSet):
 class StaffViewSet(viewsets.ModelViewSet):
     queryset = Staff.objects.all()
     serializer_class = StaffSerializer
+    filter_backends = [DjangoFilterBackend, filters.SearchFilter] 
+    search_fields = ["first_name", "last_name"]
+    filterset_fields = ["department", "staff_type"]
     # Define authentication method
     authentication_classes = [JWTAuthentication]
     # Only authenticated users can access
@@ -77,37 +88,79 @@ class StaffViewSet(viewsets.ModelViewSet):
     
     def get_queryset(self):
         today = date.today()
-        return Staff.objects.annotate(
-            # Extract month and day from date_of_birth
+        queryset = Staff.objects.annotate(
             birth_month=F('date_of_birth__month'),
             birth_day=F('date_of_birth__day'),
-            # Determine if the birthday has passed in the current year
             birthday_passed=Case(
-                When(
-                    birth_month__lt=today.month, then=Value(1)
-                ),
-                When(
-                    birth_month=today.month, birth_day__lt=today.day, then=Value(1)
-                ),
+                When(birth_month__lt=today.month, then=Value(1)),
+                When(birth_month=today.month, birth_day__lt=today.day, then=Value(1)),
                 default=Value(0),
                 output_field=IntegerField()
             )
-        ).order_by('birthday_passed', 'birth_month', 'birth_day')  
+        ).order_by('birthday_passed', 'birth_month', 'birth_day')
+
+        birth_month = self.request.query_params.get("birth_month")
+
+        if birth_month:
+            if not birth_month.isdigit(): 
+                raise ValidationError({"birth_month": "Birth month must be a number between 1 and 12."})
+
+            birth_month = int(birth_month) 
+            
+            if not (1 <= birth_month <= 12):  
+                raise ValidationError({"birth_month": "Birth month must be between 1 and 12."})
+            
+            queryset = queryset.filter(date_of_birth__month=birth_month)
+
+        return queryset
 
     @swagger_auto_schema(
-        operation_description="Return a list of all staff.",
-        responses={200: StaffSerializer(many=True)}
+        manual_parameters=[
+            openapi.Parameter(
+                "search",
+                openapi.IN_QUERY,
+                description="Search staff by first name, last name or both",
+                type=openapi.TYPE_STRING,
+            ),
+            openapi.Parameter(
+                "department",
+                openapi.IN_QUERY,
+                description="Filter staff by department",
+                type=openapi.TYPE_STRING,
+                enum=["botany", "computer_science", "chemistry", "cell_biology_and_genetics",
+                      "marine_sciences", "mathematics", "microbiology", "physics",
+                      "statistics", "zoology"],
+            ),
+            openapi.Parameter(
+                "staff_type",
+                openapi.IN_QUERY,
+                description="Filter staff by staff type",
+                type=openapi.TYPE_STRING,
+                enum=["academic", "non_academic"],
+            ),
+            openapi.Parameter(
+                "birth_month",
+                openapi.IN_QUERY,
+                description="Filter staff by birth month (1-12)",
+                type=openapi.TYPE_INTEGER,
+            ),
+        ],
+        responses={
+            200: StaffSerializer(many=True),
+            400: openapi.Response(
+            description="Invalid birth month provided",
+            examples={
+                "application/json": {
+                    "birth_month": "Birth month must be a number between 1 and 12.",
+                    "staff_type": "Invalid staff type.",
+                    "department": "Invalid department choice.",
+                }
+            }
+            )
+                   }
     )
     def list(self, request, *args, **kwargs):
         return super().list(request, *args, **kwargs)
-
-    # @swagger_auto_schema(
-    #     operation_description="Accept staff details and create a new staff.",
-    #     request_body=StaffSerializer,
-    #     responses={201: StaffSerializer}
-    # )
-    # def create(self, request, *args, **kwargs):
-    #     return super().create(request, *args, **kwargs)
     
     @swagger_auto_schema(
         operation_description="Accept staff details and create new staff.",
@@ -146,3 +199,32 @@ class StaffViewSet(viewsets.ModelViewSet):
     )
     def destroy(self, request, *args, **kwargs):
         return super().destroy(request, *args, **kwargs)
+    
+
+
+class DepartmentListView(APIView):
+    """API endpoint to retrieve all available departments."""
+    permission_classes = [permissions.AllowAny]  
+
+    @swagger_auto_schema(
+        operation_description="Retrieve a list of all available departments",
+        responses={200: openapi.Response(
+            description="List of departments",
+            examples={
+                "application/json": [
+                    "botany",
+                    "computer_science",
+                    "chemistry",
+                    "cell_biology_and_genetics",
+                    "marine_sciences",
+                    "mathematics",
+                    "microbiology",
+                    "physics",
+                    "statistics",
+                    "zoology"
+                ]
+            }
+        )}
+    )
+    def get(self, request):
+        return Response(DEPARTMENT_CHOICES)

@@ -12,6 +12,10 @@ https://docs.djangoproject.com/en/5.1/ref/settings/
 
 from pathlib import Path
 from datetime import timedelta
+import os
+from dotenv import load_dotenv
+
+load_dotenv()
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
@@ -32,6 +36,7 @@ ALLOWED_HOSTS = []
 # Application definition
 
 INSTALLED_APPS = [
+    'django_filters',
     'rest_framework_simplejwt',
     'drf_yasg',
     'birthday.apps.BirthdayConfig',
@@ -96,13 +101,7 @@ SIMPLE_JWT = {
     'AUTH_HEADER_TYPES': ('Bearer',),
 }
 
-EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
-EMAIL_HOST = 'smtp.mailgun.org'
-EMAIL_PORT = 587
-EMAIL_HOST_USER = 'postmaster@sandbox0f95a144867f4f669201b21957d8f70d.mailgun.org'
-EMAIL_HOST_PASSWORD = '8be8375707900d0b9af73f6c9892910f-1654a412-b66acaba'
-EMAIL_USE_TLS = True
-DEFAULT_FROM_EMAIL = 'noreply@example.com'
+
 
 
 
@@ -124,8 +123,8 @@ AUTH_PASSWORD_VALIDATORS = [
     },
 ]
 
-
-
+MAILERSEND_API_KEY = os.getenv("MAILERSEND_API_KEY")
+MAILERSEND_SENDER_EMAIL = os.getenv("MAILERSEND_SENDER_EMAIL")
 
 # Internationalization
 # https://docs.djangoproject.com/en/5.1/topics/i18n/
@@ -137,7 +136,6 @@ TIME_ZONE = 'UTC'
 USE_I18N = True
 
 USE_TZ = True
-
 
 # Static files (CSS, JavaScript, Images)
 # https://docs.djangoproject.com/en/5.1/howto/static-files/
