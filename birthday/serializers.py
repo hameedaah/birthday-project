@@ -1,5 +1,5 @@
 from rest_framework import serializers
-from .models import Staff
+from .models import Staff, NotificationTemplate
 from datetime import datetime
 from django.contrib.auth import get_user_model
 
@@ -28,3 +28,9 @@ class UserSerializer(serializers.ModelSerializer):
         model = User
         fields = '__all__'
         read_only_fields = ['id']
+
+class NotificationTemplateSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = NotificationTemplate
+        fields = '__all__'
+        read_only_fields = [Staff, 'id','created_at', 'updated_at']

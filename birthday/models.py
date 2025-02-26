@@ -66,13 +66,13 @@ class Staff(models.Model):
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
 
-    # class Meta:
-    #     constraints = [
-    #         models.UniqueConstraint(
-    #             Lower('email'),
-    #             name='unique_lower_email'
-    #         )
-    #     ]
+    class Meta:
+        constraints = [
+            models.UniqueConstraint(
+                Lower('email'),
+                name='unique_lower_email'
+            )
+        ]
     
     def clean(self):
         if self.date_of_birth and self.date_of_birth > date.today():
