@@ -10,16 +10,16 @@ class BirthdayConfig(AppConfig):
     name = 'birthday'
 
 
-    def ready(self):
-        import birthday.signals
-        from .tasks import send_birthday_email
-        from pytz import timezone
+    # def ready(self):
+        # import birthday.signals
+        # from .tasks import send_birthday_email
+        # from pytz import timezone
 
 
-        local_tz = timezone("Africa/Lagos")
-        scheduler = BackgroundScheduler()
-        trigger = CronTrigger(hour=9, minute=0, timezone=local_tz)
-        scheduler.add_job(send_birthday_email, trigger)
-        scheduler.start()
+        # local_tz = timezone("Africa/Lagos")
+        # scheduler = BackgroundScheduler()
+        # trigger = CronTrigger(hour=9, minute=0, timezone=local_tz)
+        # scheduler.add_job(send_birthday_email, trigger)
+        # scheduler.start()
 
-        atexit.register(lambda: scheduler.shutdown())
+        # atexit.register(lambda: scheduler.shutdown())
