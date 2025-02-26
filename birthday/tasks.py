@@ -18,7 +18,7 @@ def send_birthday_email():
         message = staff.notification_template.message
         # Fallback to default message if message is empty
         if not message.strip():
-            message = "Happy Birthday! Wishing you a fantastic day full of joy and success."
+            message = "Happyy Birthday! Wishing you a fantastic day full of joy and success."
         subject = "Happy Birthday!"
         html_content = f"<h1>Happy Birthday, {staff.first_name}!</h1><p>{message}</p>"
         text_content = f"Happy Birthday, {staff.first_name}! {message}"
