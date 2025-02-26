@@ -37,4 +37,3 @@ def send_birthday_email():
         except Exception as e:
             # Log failure with error message
             NotificationLog.objects.create(staff=staff, status='failed', error_message=str(e))
-
