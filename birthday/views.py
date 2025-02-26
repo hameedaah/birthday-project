@@ -83,7 +83,7 @@ class StaffViewSet(viewsets.ModelViewSet):
 
     def get_permissions(self):
         """Allow unauthenticated access for GET, require authentication for others"""
-        if self.action in ['list', 'retrieve']:  
+        if self.action in ['list']:  
             return [permissions.AllowAny()]
         return super().get_permissions()
     
@@ -213,8 +213,9 @@ class StaffViewSet(viewsets.ModelViewSet):
     def partial_update(self, request, *args, **kwargs):
         return super().partial_update(request, *args, **kwargs)
 
-class DepartmentListView(APIView):
-    permission_classes = [permissions.AllowAny]  
+class DepartmentListView(APIView): 
+    authentication_classes = [JWTAuthentication]
+    permission_classes = [permissions.IsAuthenticated]
     swagger_tags = ['Departments']
 
     @swagger_auto_schema(

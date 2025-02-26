@@ -36,6 +36,7 @@ ALLOWED_HOSTS = []
 # Application definition
 
 INSTALLED_APPS = [
+    'corsheaders',
     'django_filters',
     'rest_framework_simplejwt',
     'rest_framework',
@@ -50,6 +51,7 @@ INSTALLED_APPS = [
 ]
 
 MIDDLEWARE = [
+    'corsheaders.middleware.CorsMiddleware',
     'django.middleware.security.SecurityMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
     'django.middleware.common.CommonMiddleware',
@@ -160,4 +162,9 @@ SWAGGER_SETTINGS = {
 AUTHENTICATION_BACKENDS = [
     'birthday.backends.EmailBackend',  # Your custom email-based authentication
     'django.contrib.auth.backends.ModelBackend',  # Default Django authentication
+]
+
+CORS_ALLOWED_ORIGINS = [
+    "http://localhost:3000",
+    "https://birthday-app-group-8.vercel.app"
 ]

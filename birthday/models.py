@@ -87,7 +87,6 @@ class Staff(models.Model):
     def __str__(self):
         return f"{self.first_name} {self.last_name}"
 
-
 class NotificationTemplate(models.Model):
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
     staff = models.OneToOneField(Staff, on_delete=models.CASCADE, related_name="notification_template")
@@ -97,7 +96,6 @@ class NotificationTemplate(models.Model):
 
     def __str__(self):
         return f"Template for {self.staff}"
-
 
 class NotificationLog(models.Model):
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
