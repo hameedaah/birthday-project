@@ -29,14 +29,16 @@ class UserSerializer(serializers.ModelSerializer):
         read_only_fields = ['id']
 
 class NotificationTemplateSerializer(serializers.ModelSerializer):
+    staff = StaffSerializer(read_only=True)
     class Meta:
         model = NotificationTemplate
         fields = '__all__'
-        read_only_fields = [Staff, 'id','created_at', 'updated_at']
+        read_only_fields = ['staff', 'id','created_at', 'updated_at']
 
 class NotificationLogSerializer(serializers.ModelSerializer):
+    staff = StaffSerializer(read_only=True)
     class Meta:
         model = NotificationLog
         fields = '__all__'
-        read_only_fields = ['Staff', 'id','status','error_message','created_at']
+        read_only_fields = ['staff', 'id','status','error_message','created_at']
 

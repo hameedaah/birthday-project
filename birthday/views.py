@@ -274,8 +274,9 @@ class NotificationTemplateRetrieveUpdateView(generics.RetrieveUpdateAPIView):
     def put(self, request, *args, **kwargs):
         return super().put(request, *args, **kwargs)
 
-class NotificationLogListView(generics.ListAPIView):
-    swagger_tags = ['Notification Log']
+
+# Base class for shared logic
+class NotificationLogListBase(generics.ListAPIView):
     serializer_class = NotificationLogSerializer
     authentication_classes = [JWTAuthentication]
     permission_classes = [permissions.IsAuthenticated]
@@ -286,16 +287,33 @@ class NotificationLogListView(generics.ListAPIView):
             return NotificationLog.objects.filter(staff__id=staff_id)
         return NotificationLog.objects.all()
 
+
+# Endpoint for all logs 
+class NotificationLogListView(NotificationLogListBase):
+    swagger_tags = ['Notification Log']
+
     @swagger_auto_schema(
-        operation_description=(
-            "Retrieve notification logs."
-        ),
+        operation_description="Retrieve all notification logs.",
+        responses={200: NotificationLogSerializer(many=True)},
+        tags=['Notification Log']
+    )
+    def get(self, request, *args, **kwargs):
+        return super().get(request, *args, **kwargs)
+
+
+# Endpoint for logs filtered by staff 
+class NotificationLogByStaffListView(NotificationLogListBase):
+    swagger_tags = ['Notification Log']
+
+    @swagger_auto_schema(
+        operation_description="Retrieve notification logs for a specific staff member by staff id.",
         manual_parameters=[
             openapi.Parameter(
                 'staff_id',
                 openapi.IN_PATH,
-                description="Optional UUID of the staff member",
-                type=openapi.TYPE_STRING
+                description="UUID of the staff member",
+                type=openapi.TYPE_STRING,
+                required=True
             )
         ],
         responses={200: NotificationLogSerializer(many=True)},
