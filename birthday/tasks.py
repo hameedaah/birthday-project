@@ -1,4 +1,3 @@
-# tasks.py
 from .utils import send_email
 from datetime import date
 from .models import Staff, NotificationLog  

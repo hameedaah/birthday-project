@@ -1,5 +1,5 @@
 from django.contrib import admin
-from .models import Staff, User, NotificationTemplate
+from .models import Staff, User, NotificationTemplate, NotificationLog
 
 
 @admin.register(Staff)
@@ -25,3 +25,8 @@ class UserAdmin(admin.ModelAdmin):
 class NotificationTemplateAdmin(admin.ModelAdmin):
     list_display = [field.name for field in NotificationTemplate._meta.fields]
     fields = [field.name for field in NotificationTemplate._meta.fields if field.name not in ["id", "created_at", "updated_at"]]
+
+@admin.register(NotificationLog)
+class NotificationLogAdmin(admin.ModelAdmin):
+    list_display = [field.name for field in NotificationLog._meta.fields]
+    fields = [field.name for field in NotificationLog._meta.fields if field.name not in ["id","created_at"]]

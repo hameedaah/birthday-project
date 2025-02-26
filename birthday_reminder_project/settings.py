@@ -157,5 +157,6 @@ SWAGGER_SETTINGS = {
             'name': 'Authorization',
             'in': 'header'
         }
-    }
+    },
+    'TAGS_SORTER': 'alpha',
 }

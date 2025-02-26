@@ -6,4 +6,3 @@ class Command(BaseCommand):
 
     def handle(self, *args, **kwargs):
         send_birthday_email()
-        self.stdout.write(self.style.SUCCESS("Birthday emails sent successfully."))

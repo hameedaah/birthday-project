@@ -1,6 +1,6 @@
-from rest_framework import viewsets, permissions, status, filters
-from .models import Staff, User
-from .serializers import  StaffSerializer, UserSerializer
+from rest_framework import viewsets, permissions, status, filters, generics
+from .models import Staff, User, NotificationTemplate, NotificationLog
+from .serializers import  StaffSerializer, UserSerializer, NotificationTemplateSerializer, NotificationLogSerializer
 from rest_framework_simplejwt.authentication import JWTAuthentication
 from drf_yasg.utils import swagger_auto_schema
 from drf_yasg import openapi
@@ -10,7 +10,7 @@ from rest_framework.response import Response
 from rest_framework_simplejwt.tokens import RefreshToken
 from django.db.models import IntegerField, Case, When, Value, F
 from django_filters.rest_framework import DjangoFilterBackend
-from rest_framework.exceptions import ValidationError
+from rest_framework.exceptions import ValidationError, NotFound
 from datetime import date
 
 DEPARTMENT_CHOICES = [
@@ -21,6 +21,7 @@ DEPARTMENT_CHOICES = [
 
 
 class AdminLoginView(APIView):
+    swagger_tags = ['Auth']
     @swagger_auto_schema(
         operation_description="Admin login endpoint.",
         request_body=openapi.Schema(
@@ -35,7 +36,8 @@ class AdminLoginView(APIView):
             200: openapi.Response(description="Successful login"),
             403: openapi.Response(description="Access denied - Not an admin"),
             401: openapi.Response(description="Invalid email or password"),
-        }
+        },
+        tags = ['Auth']
     )
 
     def post(self, request):
@@ -70,6 +72,7 @@ class UserViewSet(viewsets.ModelViewSet):
     permission_classes = [permissions.IsAuthenticated, permissions.IsAdminUser] 
 
 class StaffViewSet(viewsets.ModelViewSet):
+    swagger_tags = ['Staff']
     queryset = Staff.objects.all()
     serializer_class = StaffSerializer
     filter_backends = [DjangoFilterBackend, filters.SearchFilter] 
@@ -157,7 +160,8 @@ class StaffViewSet(viewsets.ModelViewSet):
                 }
             }
             )
-                   }
+                   },
+        tags = ['Staff']
     )
     def list(self, request, *args, **kwargs):
         return super().list(request, *args, **kwargs)
@@ -165,7 +169,8 @@ class StaffViewSet(viewsets.ModelViewSet):
     @swagger_auto_schema(
         operation_description="Accept staff details and create new staff.",
         request_body=StaffSerializer(many=True),  
-        responses={201: StaffSerializer(many=True)}
+        responses={201: StaffSerializer(many=True)},
+        tags = ['Staff']
     )
     def create(self, request, *args, **kwargs):
         """Handles both single and bulk staff creation"""
@@ -180,7 +185,8 @@ class StaffViewSet(viewsets.ModelViewSet):
 
     @swagger_auto_schema(
         operation_description="Fetch a single staff based on their id.",
-        responses={200: StaffSerializer}
+        responses={200: StaffSerializer},
+        tags = ['Staff']
     )
     def retrieve(self, request, *args, **kwargs):
         return super().retrieve(request, *args, **kwargs)
@@ -188,23 +194,30 @@ class StaffViewSet(viewsets.ModelViewSet):
     @swagger_auto_schema(
         operation_description="Update an existing staff based on their id.",
         request_body=StaffSerializer,
-        responses={200: StaffSerializer}
+        responses={200: StaffSerializer},
+        tags = ['Staff']
     )
     def update(self, request, *args, **kwargs):
         return super().update(request, *args, **kwargs)
 
     @swagger_auto_schema(
         operation_description="Removes a staff the database based on their id.",
-        responses={204: 'No Content'}
+        responses={204: 'No Content'},
+        tags = ['Staff']
     )
     def destroy(self, request, *args, **kwargs):
         return super().destroy(request, *args, **kwargs)
     
-
+    @swagger_auto_schema(
+        operation_description="Update selected details of a staff member.",
+        tags=['Staff']
+    )
+    def partial_update(self, request, *args, **kwargs):
+        return super().partial_update(request, *args, **kwargs)
 
 class DepartmentListView(APIView):
-    """API endpoint to retrieve all available departments."""
     permission_classes = [permissions.AllowAny]  
+    swagger_tags = ['Departments']
 
     @swagger_auto_schema(
         operation_description="Retrieve a list of all available departments",
@@ -224,7 +237,69 @@ class DepartmentListView(APIView):
                     "zoology"
                 ]
             }
-        )}
+        )},
+        tags = ['Departments']
     )
     def get(self, request):
         return Response(DEPARTMENT_CHOICES)
+
+class NotificationTemplateRetrieveUpdateView(generics.RetrieveUpdateAPIView):
+    swagger_tags = ['Notification Template']
+    serializer_class = NotificationTemplateSerializer
+    authentication_classes = [JWTAuthentication]
+    permission_classes = [permissions.IsAuthenticated]
+    http_method_names = ['get', 'put']
+
+    def get_object(self):
+        staff_id = self.kwargs.get('staff_id')
+        try:
+            return NotificationTemplate.objects.get(staff__id=staff_id)
+        except NotificationTemplate.DoesNotExist:
+            raise NotFound("Notification template does not exist for this staff.")
+
+    @swagger_auto_schema(
+        operation_description="Retrieve the notification template for a staff member by staff id.",
+        responses={200: NotificationTemplateSerializer()},
+        tags = ['Notification Template']
+    )
+    def get(self, request, *args, **kwargs):
+        return super().get(request, *args, **kwargs)
+
+    @swagger_auto_schema(
+        operation_description="Update the notification template for a staff member by staff id.",
+        request_body=NotificationTemplateSerializer,
+        responses={200: NotificationTemplateSerializer()},
+        tags = ['Notification Template']
+    )
+    def put(self, request, *args, **kwargs):
+        return super().put(request, *args, **kwargs)
+
+class NotificationLogListView(generics.ListAPIView):
+    swagger_tags = ['Notification Log']
+    serializer_class = NotificationLogSerializer
+    authentication_classes = [JWTAuthentication]
+    permission_classes = [permissions.IsAuthenticated]
+
+    def get_queryset(self):
+        staff_id = self.kwargs.get('staff_id')
+        if staff_id:
+            return NotificationLog.objects.filter(staff__id=staff_id)
+        return NotificationLog.objects.all()
+
+    @swagger_auto_schema(
+        operation_description=(
+            "Retrieve notification logs."
+        ),
+        manual_parameters=[
+            openapi.Parameter(
+                'staff_id',
+                openapi.IN_PATH,
+                description="Optional UUID of the staff member",
+                type=openapi.TYPE_STRING
+            )
+        ],
+        responses={200: NotificationLogSerializer(many=True)},
+        tags=['Notification Log']
+    )
+    def get(self, request, *args, **kwargs):
+        return super().get(request, *args, **kwargs)

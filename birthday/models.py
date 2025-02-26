@@ -100,6 +100,7 @@ class NotificationTemplate(models.Model):
 
 
 class NotificationLog(models.Model):
+    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
     staff = models.ForeignKey(
         Staff, 
         on_delete=models.CASCADE, 
