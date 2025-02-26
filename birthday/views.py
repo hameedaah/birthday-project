@@ -43,7 +43,7 @@ class AdminLoginView(APIView):
     def post(self, request):
         email = request.data.get("email")
         password = request.data.get("password")
-        
+
         # Authenticate user
         user = authenticate(request, username=email, password=password)
 
@@ -273,7 +273,7 @@ class NotificationTemplateRetrieveUpdateView(generics.RetrieveUpdateAPIView):
         return super().put(request, *args, **kwargs)
 
 
-# Base class for shared logic
+# shared logic
 class NotificationLogListBase(generics.ListAPIView):
     serializer_class = NotificationLogSerializer
     authentication_classes = [JWTAuthentication]
@@ -286,7 +286,7 @@ class NotificationLogListBase(generics.ListAPIView):
         return NotificationLog.objects.all()
 
 
-# Endpoint for all logs 
+# All logs 
 class NotificationLogListView(NotificationLogListBase):
     swagger_tags = ['Notification Log']
 
@@ -299,7 +299,7 @@ class NotificationLogListView(NotificationLogListBase):
         return super().get(request, *args, **kwargs)
 
 
-# Endpoint for logs filtered by staff 
+# Logs filtered by staff 
 class NotificationLogByStaffListView(NotificationLogListBase):
     swagger_tags = ['Notification Log']
 

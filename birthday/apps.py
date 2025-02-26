@@ -10,8 +10,8 @@ class BirthdayConfig(AppConfig):
     name = 'birthday'
 
 
-    # def ready(self):
-        # import birthday.signals
+    def ready(self):
+        import birthday.signals
         # from .tasks import send_birthday_email
         # from pytz import timezone
 
