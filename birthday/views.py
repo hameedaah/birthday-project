@@ -43,8 +43,6 @@ class AdminLoginView(APIView):
     def post(self, request):
         email = request.data.get("email")
         password = request.data.get("password")
-
-        request.data['username'] = request.data.pop('email')
         
         # Authenticate user
         user = authenticate(request, username=email, password=password)

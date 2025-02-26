@@ -102,10 +102,6 @@ SIMPLE_JWT = {
     'AUTH_HEADER_TYPES': ('Bearer',),
 }
 
-
-
-
-
 # Password validation
 # https://docs.djangoproject.com/en/5.1/ref/settings/#auth-password-validators
 
@@ -160,3 +156,8 @@ SWAGGER_SETTINGS = {
     },
     'TAGS_SORTER': 'alpha',
 }
+
+AUTHENTICATION_BACKENDS = [
+    'birthday.backends.EmailBackend',  # Your custom email-based authentication
+    'django.contrib.auth.backends.ModelBackend',  # Default Django authentication
+]
