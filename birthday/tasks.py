@@ -1,34 +1,40 @@
 # tasks.py
-from django.core.mail import send_mail
-from django.conf import settings
-from django.utils import timezone
+from .utils import send_email
+from datetime import date
+from .models import Staff, NotificationLog  
 
 
-# def send_birthday_emails():
-#     """
-#     Query for birthdays that match today's date and send out an email
-#     to each recipient.
-#     """
-#     from .models import Birthday
-#     today = timezone.now().date()
-#     birthdays_today = Birthday.objects.filter(date_of_birth=today)
+def send_birthday_email():
+    today = date.today()
 
-#     for birthday in birthdays_today:
-#         # If Birthday model has a ForeignKey to User with an email field.
-#         if birthday.staff and birthday.staff.email:
-#             recipient_email = birthday.staff.email
-#         else:
-#             # Alternatively, if your Birthday model stores email directly,
-#             # recipient_email = birthday.email
-#             continue  # Skip if no email found
+    staff_with_birthday = Staff.objects.filter(
+        date_of_birth__month=today.month,
+        date_of_birth__day=today.day,
+        is_enabled=True
+    ).select_related('notification_template')
 
-#         subject = "Happy Birthday!"
-#         message = (
-#             'happy birthday.'
-#         )
-#         from_email = settings.DEFAULT_FROM_EMAIL
-#         recipient_list = [recipient_email]
+    
+    for staff in staff_with_birthday:
+        message = staff.notification_template.message
+        # Fallback to default message if message is empty
+        if not message.strip():
+            message = "Happy Birthday! Wishing you a fantastic day full of joy and success."
+        subject = "Happy Birthday!"
+        html_content = f"<h1>Happy Birthday, {staff.first_name}!</h1><p>{message}</p>"
+        text_content = f"Happy Birthday, {staff.first_name}! {message}"
+        
+        try:
+            # Send the email
+            response = send_email(
+                to_email=staff.email,
+                subject=subject,
+                html_content=html_content,
+                text_content=text_content
+            )
+ 
+            # Log success
+            NotificationLog.objects.create(staff=staff, status='sent', error_message='')
+        except Exception as e:
+            # Log failure with error message
+            NotificationLog.objects.create(staff=staff, status='failed', error_message=str(e))
 
-#         # Send the email
-#         send_mail(subject, message, from_email, recipient_list)
-#         print(f"Sent birthday email to {recipient_email}")

@@ -38,6 +38,7 @@ ALLOWED_HOSTS = []
 INSTALLED_APPS = [
     'django_filters',
     'rest_framework_simplejwt',
+    'rest_framework',
     'drf_yasg',
     'birthday.apps.BirthdayConfig',
     'django.contrib.admin',
