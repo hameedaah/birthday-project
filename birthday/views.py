@@ -1,6 +1,6 @@
 from rest_framework import viewsets, permissions, status, filters, generics
 from .models import Staff, User, NotificationTemplate, NotificationLog
-from .serializers import  StaffSerializer, UserSerializer, NotificationTemplateSerializer, NotificationLogSerializer
+from .serializers import  StaffSerializer, UserSerializer, NotificationTemplateSerializer, NotificationLogSerializer, UserForgotPasswordSerializer, UserResetPasswordSerializer
 from rest_framework_simplejwt.authentication import JWTAuthentication
 from drf_yasg.utils import swagger_auto_schema
 from drf_yasg import openapi
@@ -21,7 +21,7 @@ DEPARTMENT_CHOICES = [
 
 
 class AdminLoginView(APIView):
-    swagger_tags = ['Auth']
+    swagger_tags = ['auth']
     @swagger_auto_schema(
         operation_description="Admin login endpoint.",
         request_body=openapi.Schema(
@@ -37,7 +37,7 @@ class AdminLoginView(APIView):
             403: openapi.Response(description="Access denied - Not an admin"),
             401: openapi.Response(description="Invalid email or password"),
         },
-        tags = ['Auth']
+        tags = ['auth']
     )
 
     def post(self, request):
@@ -60,8 +60,14 @@ class AdminLoginView(APIView):
                         "last_name": user.last_name
                     }
                 }, status=status.HTTP_200_OK)
-            return Response({"detail": "Access denied. You do not have admin privileges."}, status=status.HTTP_403_FORBIDDEN)
-        return Response({"detail": "Invalid email or password. Please check your credentials and try again."}, status=status.HTTP_401_UNAUTHORIZED)
+            return Response(
+                {
+                    "message": "Access denied. You do not have admin privileges."
+                }, status=status.HTTP_403_FORBIDDEN)
+        return Response(
+            {
+                "message": "Invalid email or password. Please check your credentials and try again."
+            }, status=status.HTTP_401_UNAUTHORIZED)
 
 class UserViewSet(viewsets.ModelViewSet):
     queryset = User.objects.all()
@@ -70,7 +76,7 @@ class UserViewSet(viewsets.ModelViewSet):
     permission_classes = [permissions.IsAuthenticated, permissions.IsAdminUser] 
 
 class StaffViewSet(viewsets.ModelViewSet):
-    swagger_tags = ['Staff']
+    swagger_tags = ['staff']
     queryset = Staff.objects.all()
     serializer_class = StaffSerializer
     filter_backends = [DjangoFilterBackend, filters.SearchFilter] 
@@ -159,7 +165,7 @@ class StaffViewSet(viewsets.ModelViewSet):
             }
             )
                    },
-        tags = ['Staff']
+        tags = ['staff']
     )
     def list(self, request, *args, **kwargs):
         return super().list(request, *args, **kwargs)
@@ -168,7 +174,7 @@ class StaffViewSet(viewsets.ModelViewSet):
         operation_description="Accept staff details and create new staff.",
         request_body=StaffSerializer(many=True),  
         responses={201: StaffSerializer(many=True)},
-        tags = ['Staff']
+        tags = ['staff']
     )
     def create(self, request, *args, **kwargs):
         """Handles both single and bulk staff creation"""
@@ -184,7 +190,7 @@ class StaffViewSet(viewsets.ModelViewSet):
     @swagger_auto_schema(
         operation_description="Fetch a single staff based on their id.",
         responses={200: StaffSerializer},
-        tags = ['Staff']
+        tags = ['staff']
     )
     def retrieve(self, request, *args, **kwargs):
         return super().retrieve(request, *args, **kwargs)
@@ -193,7 +199,7 @@ class StaffViewSet(viewsets.ModelViewSet):
         operation_description="Update an existing staff based on their id.",
         request_body=StaffSerializer,
         responses={200: StaffSerializer},
-        tags = ['Staff']
+        tags = ['staff']
     )
     def update(self, request, *args, **kwargs):
         return super().update(request, *args, **kwargs)
@@ -201,14 +207,14 @@ class StaffViewSet(viewsets.ModelViewSet):
     @swagger_auto_schema(
         operation_description="Removes a staff the database based on their id.",
         responses={204: 'No Content'},
-        tags = ['Staff']
+        tags = ['staff']
     )
     def destroy(self, request, *args, **kwargs):
         return super().destroy(request, *args, **kwargs)
     
     @swagger_auto_schema(
         operation_description="Update selected details of a staff member.",
-        tags=['Staff']
+        tags=['staff']
     )
     def partial_update(self, request, *args, **kwargs):
         return super().partial_update(request, *args, **kwargs)
@@ -216,7 +222,7 @@ class StaffViewSet(viewsets.ModelViewSet):
 class DepartmentListView(APIView): 
     authentication_classes = [JWTAuthentication]
     permission_classes = [permissions.IsAuthenticated]
-    swagger_tags = ['Departments']
+    swagger_tags = ['departments']
 
     @swagger_auto_schema(
         operation_description="Retrieve a list of all available departments",
@@ -237,13 +243,13 @@ class DepartmentListView(APIView):
                 ]
             }
         )},
-        tags = ['Departments']
+        tags = ['departments']
     )
     def get(self, request):
         return Response(DEPARTMENT_CHOICES)
 
 class NotificationTemplateRetrieveUpdateView(generics.RetrieveUpdateAPIView):
-    swagger_tags = ['Notification Template']
+    swagger_tags = ['notification template']
     serializer_class = NotificationTemplateSerializer
     authentication_classes = [JWTAuthentication]
     permission_classes = [permissions.IsAuthenticated]
@@ -259,7 +265,7 @@ class NotificationTemplateRetrieveUpdateView(generics.RetrieveUpdateAPIView):
     @swagger_auto_schema(
         operation_description="Retrieve the notification template for a staff member by staff id.",
         responses={200: NotificationTemplateSerializer()},
-        tags = ['Notification Template']
+        tags = ['notification template']
     )
     def get(self, request, *args, **kwargs):
         return super().get(request, *args, **kwargs)
@@ -268,11 +274,10 @@ class NotificationTemplateRetrieveUpdateView(generics.RetrieveUpdateAPIView):
         operation_description="Update the notification template for a staff member by staff id.",
         request_body=NotificationTemplateSerializer,
         responses={200: NotificationTemplateSerializer()},
-        tags = ['Notification Template']
+        tags = ['notification template']
     )
     def put(self, request, *args, **kwargs):
         return super().put(request, *args, **kwargs)
-
 
 # shared logic
 class NotificationLogListBase(generics.ListAPIView):
@@ -289,20 +294,19 @@ class NotificationLogListBase(generics.ListAPIView):
 
 # All logs 
 class NotificationLogListView(NotificationLogListBase):
-    swagger_tags = ['Notification Log']
+    swagger_tags = ['notification log']
 
     @swagger_auto_schema(
         operation_description="Retrieve all notification logs.",
         responses={200: NotificationLogSerializer(many=True)},
-        tags=['Notification Log']
+        tags=['notification log']
     )
     def get(self, request, *args, **kwargs):
         return super().get(request, *args, **kwargs)
 
-
 # Logs filtered by staff 
 class NotificationLogByStaffListView(NotificationLogListBase):
-    swagger_tags = ['Notification Log']
+    swagger_tags = ['notification log']
 
     @swagger_auto_schema(
         operation_description="Retrieve notification logs for a specific staff member by staff id.",
@@ -316,7 +320,65 @@ class NotificationLogByStaffListView(NotificationLogListBase):
             )
         ],
         responses={200: NotificationLogSerializer(many=True)},
-        tags=['Notification Log']
+        tags=['notification log']
     )
     def get(self, request, *args, **kwargs):
         return super().get(request, *args, **kwargs)
+
+class UserForgotPasswordView(APIView):
+    swagger_tags = ['auth']
+    @swagger_auto_schema(
+        request_body=UserForgotPasswordSerializer,
+        responses={
+            200: openapi.Response(
+                description="Password reset link sent.",
+                schema=openapi.Schema(
+                    type=openapi.TYPE_OBJECT,
+                    properties={
+                        'detail': openapi.Schema(type=openapi.TYPE_STRING)
+                    }
+                )
+            ),
+            400: "Bad Request"
+        },
+        tags =  ['auth']
+    )
+    def post(self, request):
+        serializer = UserForgotPasswordSerializer(data=request.data, context={'request': request})
+        if serializer.is_valid():
+            data = serializer.save()  # sends email
+            return Response(
+                {
+                    "message": "Password reset link sent successfully."
+                }, status=status.HTTP_200_OK)
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+class UserResetPasswordView(APIView):
+    """
+    Accepts the token, uid, and new password. Resets the password if valid.
+    """
+    swagger_tags = ['auth']
+    @swagger_auto_schema(
+        request_body=UserResetPasswordSerializer,
+        responses={
+            200: openapi.Response(
+                description="Password reset successfully.",
+                schema=openapi.Schema(
+                    type=openapi.TYPE_OBJECT,
+                    properties={
+                        'detail': openapi.Schema(type=openapi.TYPE_STRING)
+                    }
+                )
+            ),
+            400: "Bad Request"
+        },
+        tags = ['auth']
+    )
+    def post(self, request):
+        serializer = UserResetPasswordSerializer(data=request.data)
+        if serializer.is_valid():
+            serializer.save()  # resets the password
+            return Response({
+                                "message": "Password has been reset successfully."
+                            }, status=status.HTTP_200_OK)
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
