@@ -43,7 +43,7 @@ class UserAdmin(admin.ModelAdmin):
     # Determines which fields will be shown in the list view of the Staff records in the admin interface.
     list_display = [field.name for field in User._meta.fields]
     # Specifies which fields should appear on the form when you add or edit a Staff record in the admin.
-    fields = [field.name for field in User._meta.fields if field.name not in ["id", "created_at", "updated_at","username","first_name","last_name"]]
+    fields = [field.name for field in User._meta.fields if field.name not in ["id", "created_at", "updated_at","first_name","last_name"]]
     inlines = [StaffInline]
 
     def save_model(self, request, obj, form, change):

@@ -370,11 +370,23 @@ class UserForgotPasswordView(APIView):
     def post(self, request):
         serializer = UserForgotPasswordSerializer(data=request.data, context={'request': request})
         if serializer.is_valid():
-            data = serializer.save()  # sends email
-            return Response(
-                {
-                    "message": "Password reset link sent successfully."
-                }, status=status.HTTP_200_OK)
+            try:
+                data = serializer.save()
+                return Response(
+                    {"message": "Password reset link sent successfully."},
+                    status=status.HTTP_200_OK
+                )
+            except ValueError as e:
+                error_message = str(e)
+                if "MS42225" in error_message:
+                    return Response(
+                        {"message": "You have reached the trial account unique recipients limit."},
+                        status=status.HTTP_422_UNPROCESSABLE_ENTITY
+                    )
+                return Response(
+                    {"message": "An unexpected error occurred."},
+                    status=status.HTTP_500_INTERNAL_SERVER_ERROR
+                )
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
 class UserResetPasswordView(APIView):
