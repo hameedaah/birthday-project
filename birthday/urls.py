@@ -1,6 +1,6 @@
 from django.contrib import admin
 from django.urls import include, path
-from .views import StaffViewSet, AdminLoginView, DepartmentListView, NotificationLogListView, NotificationTemplateRetrieveUpdateView, NotificationLogByStaffListView, UserForgotPasswordView,UserResetPasswordView
+from .views import StaffViewSet, AdminLoginView, DepartmentListView, NotificationLogListView, NotificationTemplateRetrieveUpdateView, NotificationLogByStaffListView, UserForgotPasswordView,UserResetPasswordView, AdminProfileView
 from rest_framework.routers import DefaultRouter
 
 staff_router = DefaultRouter()
@@ -15,6 +15,12 @@ urlpatterns = [
         path("auth/login/", AdminLoginView.as_view(), name="admin-login"),
         path('auth/forgot-password/', UserForgotPasswordView.as_view(), name='staff_forgot_password'),
         path('auth/reset-password/', UserResetPasswordView.as_view(), name='staff_reset_password'),
+
+        #admin
+        # urls.py
+        path('admin/profile/', AdminProfileView.as_view(), name='admin-profile'),
+
+
 
         #notification templates
         path('admin/notification-template/<uuid:staff_id>/', NotificationTemplateRetrieveUpdateView.as_view(), name='notification-template'),

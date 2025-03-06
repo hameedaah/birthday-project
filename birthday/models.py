@@ -4,6 +4,7 @@ from django.core.validators import RegexValidator
 from django.db.models.functions import Lower
 from django.core.exceptions import ValidationError
 from datetime import date
+from django.conf import settings
 import uuid
 
 
@@ -34,9 +35,22 @@ class User(AbstractUser):
         editable=False
     )
     def __str__(self):
-        return self.username
+        return self.email
+    
+    @property
+    def profile_image(self):
+        if hasattr(self, 'staff_profile'):
+            return self.staff_profile.profile_image_url
+        return ''
     
 class Staff(models.Model):
+    user = models.OneToOneField(
+        settings.AUTH_USER_MODEL,
+        on_delete=models.SET_NULL,
+        related_name="staff_profile",
+        null=True,  
+        blank=True
+    )
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
     first_name = models.CharField(max_length=100)
     last_name = models.CharField(max_length=100)
@@ -56,7 +70,7 @@ class Staff(models.Model):
         default=StaffType.academic
     )
     date_of_birth = models.DateField()
-    profile_image_url = models.TextField(blank=True) 
+    profile_image_url = models.TextField(blank=True, default="") 
     notification_type = models.CharField(
         max_length=100,
         choices=NotificationType.choices,

@@ -55,9 +55,9 @@ class AdminLoginView(APIView):
                     "access": str(refresh.access_token),
                     "user": {
                         "id": user.id,
+                        "staff_id": user.staff_profile.id if hasattr(user, 'staff_profile') else None,
                         "email": user.email,
-                        "first_name": user.first_name,
-                        "last_name": user.last_name
+                        "profile_image_url": user.profile_image
                     }
                 }, status=status.HTTP_200_OK)
             return Response(
@@ -68,6 +68,30 @@ class AdminLoginView(APIView):
             {
                 "message": "Invalid email or password. Please check your credentials and try again."
             }, status=status.HTTP_401_UNAUTHORIZED)
+
+class AdminProfileView(APIView):
+    swagger_tags = ['admin profile']
+    authentication_classes = [JWTAuthentication]
+    permission_classes = [permissions.IsAuthenticated, permissions.IsAdminUser] 
+
+    @swagger_auto_schema(
+        swagger_tags = ['admin profile'],
+        operation_description="Retrieve the signed in admin's details.",
+        responses={200: "Admin details returned successfully"}
+    )
+    def get(self, request):
+        user = request.user  
+        staff_id = None
+        if hasattr(user, 'staff_profile'):
+            staff_id = user.staff_profile.id
+
+        return Response({
+            "id": user.id,
+            "email": user.email,
+            "profile_image_url": user.profile_image, 
+            "staff_id": staff_id,
+        })
+
 
 class UserViewSet(viewsets.ModelViewSet):
     queryset = User.objects.all()
@@ -80,7 +104,7 @@ class StaffViewSet(viewsets.ModelViewSet):
     queryset = Staff.objects.all()
     serializer_class = StaffSerializer
     filter_backends = [DjangoFilterBackend, filters.SearchFilter] 
-    search_fields = ["first_name", "last_name"]
+    search_fields = ["first_name", "last_name", "department"]
     filterset_fields = ["department", "staff_type"]
     # Define authentication method
     authentication_classes = [JWTAuthentication]
@@ -126,7 +150,7 @@ class StaffViewSet(viewsets.ModelViewSet):
             openapi.Parameter(
                 "search",
                 openapi.IN_QUERY,
-                description="Search staff by first name, last name or both",
+                description="Search staff by first name, last name, both or department",
                 type=openapi.TYPE_STRING,
             ),
             openapi.Parameter(
