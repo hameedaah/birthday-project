@@ -1,6 +1,11 @@
 from .utils import send_email
 from datetime import date
 from .models import Staff, NotificationLog  
+from django.template.loader import render_to_string
+
+def compute_age(birth_date):
+    today = date.today()
+    return today.year - birth_date.year - ((today.month, today.day) < (birth_date.month, birth_date.day))
 
 
 def send_birthday_email():
@@ -14,25 +19,28 @@ def send_birthday_email():
 
     
     for staff in staff_with_birthday:
-        message = staff.notification_template.message
-        # Fallback to default message if message is empty
+        message = staff.notification_template.message.strip()
         if not message.strip():
             message = "Happyy Birthday! Wishing you a fantastic day full of joy and success."
-        subject = "Happy Birthday!"
-        html_content = f"<h1>Happy Birthday, {staff.first_name}!</h1><p>{message}</p>"
-        text_content = f"Happy Birthday, {staff.first_name}! {message}"
-        
+
+        personalization_data = {
+            "first_name": staff.first_name,
+            "last_name": staff.last_name,
+            "age": str(compute_age(staff.date_of_birth)),
+            "month": staff.date_of_birth.strftime("%B"),  
+            "day": str(staff.date_of_birth.day),
+            "message": message
+        }
+
+        template_id = "pq3enl6q10842vwr"  
+
         try:
-            # Send the email
             response = send_email(
                 to_email=staff.email,
-                subject=subject,
-                html_content=html_content,
-                text_content=text_content
+                template_id=template_id,
+                personalization_data=personalization_data,
+                subject="Happy Birthday!"
             )
- 
-            # Log success
             NotificationLog.objects.create(staff=staff, status='sent', error_message='')
         except Exception as e:
-            # Log failure with error message
             NotificationLog.objects.create(staff=staff, status='failed', error_message=str(e))

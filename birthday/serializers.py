@@ -67,22 +67,19 @@ class UserForgotPasswordSerializer(serializers.Serializer):
         
         # Construct the password reset URL
         reset_link = f"https://birthday-app-group-8.vercel.app/reset-password?uid={uidb64}&token={token}"
-        
+        template_id = "z86org8r1o14ew13"
 
-        subject = "Reset Your Account Password"
-        html_content = (
-            "<p>Hello,</p>"
-            "<p>You requested a password reset for your staff account.</p>"
-            f"<p>Please click the link below to reset your password:</p>"
-            f"<p><a href='{reset_link}'>Reset Password</a></p>"
-            "<p>If you did not request this, please ignore this email.</p>"
-        )
+        personalization_data = {
+        "reset_link": reset_link
+        }
 
         send_email(
             to_email=user.email,
-            subject=subject,
-            html_content=html_content,
+            template_id=template_id,
+            personalization_data=personalization_data,
+            subject="Reset Your Password"
         )
+        
 
 class UserResetPasswordSerializer(serializers.Serializer):
     uid = serializers.CharField()
